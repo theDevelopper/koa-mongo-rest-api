@@ -8,6 +8,13 @@ module.exports = class Api {
 		this.mongoDbUrl = mongoDbUrl;
 		this.router = new Router();
 		this.model = {};
+
+		this.router.use(async (ctx, next) => {
+			ctx.query.query = this.__sanitize(ctx.query.query);
+			ctx.query.projection = this.__sanitize(ctx.query.projection);
+
+			await next();
+		});
 	}
 
 	generate (model, mongoDbUrl = undefined) {
@@ -66,5 +73,19 @@ module.exports = class Api {
 
 	allowedMethods () {
 		return this.router.allowedMethods();
+	}
+
+	__sanitize(queryParamter) {
+		let sanitizedQueryParemeter = {};
+
+		if (queryParamter && typeof queryParamter === 'string') {
+			sanitizedQueryParemeter = JSON.parse(queryParamter);
+			
+			if (typeof sanitizedQueryParemeter === 'string') {
+				sanitizedQueryParemeter = {};
+			}
+		}
+
+		return sanitizedQueryParemeter;
 	}
 } 
